@@ -51,6 +51,7 @@
         };
         btnCapture.textContent = `Mulai Ambil Foto (${state.grid.count}x)`;
         shotProgress.textContent = `0 / ${state.grid.count} foto`;
+        renderPreview();
       });
     });
 
@@ -66,6 +67,7 @@
           style: btn.dataset.style,
           bump: Number(btn.dataset.bump || 0),
         };
+        renderPreview();
       });
     });
 
@@ -75,6 +77,7 @@
         btn.classList.add('active');
         state.filter = { id: btn.dataset.filter, css: btn.dataset.css };
         video.style.filter = state.filter.css === 'none' ? 'none' : state.filter.css;
+        renderPreview();
       });
     });
   }
@@ -232,9 +235,7 @@
     retakeHint.classList.add('hidden');
   }
 
-  /* ---------------- compose result strip ---------------- */
-  const resultCanvas = document.getElementById('resultCanvas');
-
+  /* ---------------- shared card renderer ---------------- */
   function loadImage(src) {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -339,13 +340,11 @@
     ctx.restore();
   }
 
-  async function composeResult() {
-    const imgs = await Promise.all(state.shots.map(loadImage));
-    if (typeof document.fonts !== 'undefined' && document.fonts.ready) {
-      try { await document.fonts.ready; } catch (e) { /* ignore */ }
-    }
-
-    const { cols, rows } = state.grid;
+  // draws the full card (background, decorative frame, title, photo slots, date)
+  // onto `canvas`, sized to fit `grid` at the given photo `aspect` (h/w) ratio.
+  // `drawSlot(ctx, x, y, w, h, idx)` paints whatever goes inside each photo slot.
+  function paintCard(canvas, theme, grid, aspect, drawSlot) {
+    const { cols, rows } = grid;
     const contentW = cols > 1 ? 420 : 460;
     const gap = 16;
     const pad = 26;
@@ -354,17 +353,16 @@
     const outerPad = 18; // bleed room so the decorative border isn't clipped at the canvas edge
 
     const photoW = (contentW - gap * (cols - 1)) / cols;
-    const photoH = Math.round(photoW * (imgs[0].height / imgs[0].width));
+    const photoH = Math.round(photoW * aspect);
 
     const cardW = Math.round(pad * 2 + cols * photoW + (cols - 1) * gap);
     const cardH = Math.round(pad * 2 + titleH + rows * photoH + (rows - 1) * gap + footerH);
 
-    resultCanvas.width = cardW + outerPad * 2;
-    resultCanvas.height = cardH + outerPad * 2;
-    const ctx = resultCanvas.getContext('2d');
+    canvas.width = cardW + outerPad * 2;
+    canvas.height = cardH + outerPad * 2;
+    const ctx = canvas.getContext('2d');
+    ctx.save();
     ctx.translate(outerPad, outerPad);
-
-    const theme = state.theme;
 
     // card background
     ctx.fillStyle = theme.bg;
@@ -391,10 +389,9 @@
     ctx.textBaseline = 'middle';
     ctx.fillText('Snapain', cardW / 2, pad + titleH / 2);
 
-    // photos
+    // photo slots
     const washiColors = [theme.accent, theme.text];
-
-    imgs.forEach((img, idx) => {
+    for (let idx = 0; idx < cols * rows; idx++) {
       const col = idx % cols;
       const row = Math.floor(idx / cols);
       const x = pad + col * (photoW + gap);
@@ -405,18 +402,18 @@
       drawRoundRect(ctx, x - 6, y - 6, photoW + 12, photoH + 12, 16);
       ctx.fill();
 
-      // photo, clipped rounded
+      // slot content, clipped rounded
       ctx.save();
       drawRoundRect(ctx, x, y, photoW, photoH, 12);
       ctx.clip();
-      ctx.drawImage(img, x, y, photoW, photoH);
+      drawSlot(ctx, x, y, photoW, photoH, idx);
       ctx.restore();
 
       if (theme.style === 'dotted-washi') {
         drawWashiTape(ctx, x + 14, y - 4, 34, 14, washiColors[idx % washiColors.length], -8);
         drawWashiTape(ctx, x + photoW - 14, y - 4, 34, 14, washiColors[(idx + 1) % washiColors.length], 8);
       }
-    });
+    }
 
     // footer date
     const now = new Date();
@@ -428,6 +425,61 @@
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(`${dd}/${mm}/${yyyy}`, cardW / 2, cardH - pad - footerH / 2);
+
+    ctx.restore();
+  }
+
+  /* ---------------- live setup preview ---------------- */
+  const previewCanvas = document.getElementById('previewCanvas');
+  const PREVIEW_ASPECT = 540 / 720; // matches the ideal camera resolution
+
+  function drawPlaceholderSlot(ctx, x, y, w, h) {
+    ctx.save();
+    ctx.filter = state.filter.css === 'none' ? 'none' : state.filter.css;
+
+    const grad = ctx.createLinearGradient(x, y, x, y + h);
+    grad.addColorStop(0, '#dce8f0');
+    grad.addColorStop(1, '#b7ccd9');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, y, w, h);
+
+    // simple person silhouette so the filter effect reads clearly
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+    const cx = x + w / 2;
+    const headR = h * 0.15;
+    const headCy = y + h * 0.36;
+    ctx.beginPath();
+    ctx.arc(cx, headCy, headR, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(cx - headR * 1.7, y + h * 1.05);
+    ctx.quadraticCurveTo(cx, y + h * 0.55, cx + headR * 1.7, y + h * 1.05);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function renderPreview() {
+    if (!previewCanvas) return;
+    paintCard(previewCanvas, state.theme, state.grid, PREVIEW_ASPECT, (ctx, x, y, w, h) => {
+      drawPlaceholderSlot(ctx, x, y, w, h);
+    });
+  }
+
+  /* ---------------- compose final result ---------------- */
+  const resultCanvas = document.getElementById('resultCanvas');
+
+  async function composeResult() {
+    const imgs = await Promise.all(state.shots.map(loadImage));
+    if (typeof document.fonts !== 'undefined' && document.fonts.ready) {
+      try { await document.fonts.ready; } catch (e) { /* ignore */ }
+    }
+    const aspect = imgs[0].height / imgs[0].width;
+    paintCard(resultCanvas, state.theme, state.grid, aspect, (ctx, x, y, w, h, idx) => {
+      ctx.drawImage(imgs[idx], x, y, w, h);
+    });
   }
 
   /* ---------------- navigation & actions ---------------- */
@@ -462,4 +514,5 @@
 
   /* ---------------- init ---------------- */
   initChips();
+  renderPreview();
 })();

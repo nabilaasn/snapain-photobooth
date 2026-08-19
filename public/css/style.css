@@ -98,6 +98,54 @@ h1, h2, h3 {
   margin: 0 0 1.5rem;
 }
 
+/* ---------- setup layout & live preview ---------- */
+.setup-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.setup-options {
+  min-width: 0;
+}
+
+.setup-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.setup-preview canvas {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 10px 24px var(--shadow);
+}
+
+.preview-caption {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5a95b5;
+  text-align: center;
+}
+
+@media (min-width: 700px) {
+  .setup-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .setup-preview {
+    flex: 0 0 240px;
+    position: sticky;
+    top: 1.5rem;
+  }
+  .setup-options {
+    flex: 1 1 auto;
+  }
+}
+
 /* ---------- option chips ---------- */
 .option-group {
   margin-bottom: 1.8rem;
