@@ -1,0 +1,1 @@
+# snapain-photobooth
