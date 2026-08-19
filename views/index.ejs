@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <div id="app">
+    <header class="site-header">
+      <h1 class="logo">Snapain</h1>
+      <p class="tagline">Photobooth online, jepret langsung dari browser kamu.</p>
+    </header>
+
+    <main class="stage-card">
+
+      <!-- ===== SETUP SCREEN ===== -->
+      <section class="screen" id="screen-setup">
+        <h2 class="screen-title">1. Pengaturan Foto</h2>
+
+        <div class="option-group">
+          <p class="option-label">Grid Foto</p>
+          <div class="option-row" id="gridRow">
+            <button class="option-chip grid-chip active" data-grid="strip4" data-cols="1" data-rows="4" data-count="4">
+              <span class="mini-grid mini-grid--1x4"><i></i><i></i><i></i><i></i></span>
+              Strip Klasik
+            </button>
+            <button class="option-chip grid-chip" data-grid="grid4" data-cols="2" data-rows="2" data-count="4">
+              <span class="mini-grid mini-grid--2x2"><i></i><i></i><i></i><i></i></span>
+              Grid Kotak
+            </button>
+            <button class="option-chip grid-chip" data-grid="strip3" data-cols="1" data-rows="3" data-count="3">
+              <span class="mini-grid mini-grid--1x3"><i></i><i></i><i></i></span>
+              Strip Mini
+            </button>
+            <button class="option-chip grid-chip" data-grid="duo" data-cols="1" data-rows="2" data-count="2">
+              <span class="mini-grid mini-grid--1x2"><i></i><i></i></span>
+              Duo
+            </button>
+          </div>
+        </div>
+
+        <div class="option-group">
+          <p class="option-label">Pilih Frame</p>
+          <div class="option-row" id="themeRow">
+            <button class="option-chip theme-chip active" data-theme="cloud"
+              data-bg="#e3f4ff" data-accent="#5fc3f0" data-text="#1f7fae"
+              data-style="scallop" data-bump="11">
+              Awan
+            </button>
+            <button class="option-chip theme-chip" data-theme="galaxy"
+              data-bg="#ece2ff" data-accent="#a98af2" data-text="#6a46c9"
+              data-style="dashed-star" data-bump="0">
+              Galaksi
+            </button>
+            <button class="option-chip theme-chip" data-theme="leaf"
+              data-bg="#dcfff2" data-accent="#5fdcb0" data-text="#1f9c78"
+              data-style="dotted-washi" data-bump="0">
+              Daun
+            </button>
+            <button class="option-chip theme-chip" data-theme="sunflower"
+              data-bg="#fff6cf" data-accent="#ffcf3d" data-text="#a87b00"
+              data-style="scallop" data-bump="16">
+              Matahari
+            </button>
+          </div>
+        </div>
+
+        <div class="option-group">
+          <p class="option-label">Filter Foto</p>
+          <div class="option-row" id="filterRow">
+            <button class="option-chip filter-chip active" data-filter="normal" data-css="none">Normal</button>
+            <button class="option-chip filter-chip" data-filter="bw" data-css="grayscale(1)">B&amp;W</button>
+            <button class="option-chip filter-chip" data-filter="sepia" data-css="sepia(0.8)">Sepia</button>
+            <button class="option-chip filter-chip" data-filter="vintage" data-css="sepia(0.35) contrast(1.1) brightness(1.05) saturate(1.2)">Vintage</button>
+            <button class="option-chip filter-chip" data-filter="soft" data-css="brightness(1.12) saturate(1.35) contrast(0.95)">Soft Glow</button>
+          </div>
+        </div>
+
+        <button id="btnStart" class="btn-primary btn-big">Mulai</button>
+      </section>
+
+      <!-- ===== BOOTH SCREEN ===== -->
+      <section class="screen hidden" id="screen-booth">
+        <h2 class="screen-title">2. Ambil Foto</h2>
+        <div class="camera-wrap">
+          <video id="video" autoplay playsinline muted></video>
+          <div class="countdown-overlay" id="countdownOverlay"></div>
+          <div class="flash" id="flashEl"></div>
+          <p class="cam-hint hidden" id="camHint">Izinkan akses kamera untuk mulai.</p>
+        </div>
+        <p class="shot-progress" id="shotProgress">0 / 4 foto</p>
+        <p class="retake-hint hidden" id="retakeHint">Klik tombol Ulang pada foto yang ingin diambil ulang.</p>
+        <div class="thumbs" id="thumbsRow"></div>
+        <button id="btnCapture" class="btn-primary btn-big">Mulai Ambil Foto (4x)</button>
+        <button id="btnContinue" class="btn-primary btn-big hidden">Lanjut ke Hasil</button>
+        <button id="btnRetakeAll" class="btn-secondary btn-big hidden">Ulangi Semua</button>
+      </section>
+
+      <!-- ===== RESULT SCREEN ===== -->
+      <section class="screen hidden" id="screen-result">
+        <h2 class="screen-title">3. Hasil Foto</h2>
+        <div class="result-canvas-wrap">
+          <canvas id="resultCanvas"></canvas>
+        </div>
+        <div class="result-actions">
+          <button id="btnDownload" class="btn-primary btn-big">Download</button>
+          <button id="btnRetake" class="btn-secondary btn-big">Ulangi</button>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="site-footer">Snapain &mdash; momen kecil, kenangan selamanya.</footer>
+  </div>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>
