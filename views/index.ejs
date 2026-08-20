@@ -8,7 +8,7 @@
   <!-- ============ LANDING PAGE ============ -->
   <div id="page-landing">
     <nav class="site-nav">
-      <span class="nav-logo">Snapain</span>
+      <span class="nav-logo"><%- include('partials/logo-icon') %>Snapain</span>
       <div class="nav-links">
         <a href="#section-how">How It Works</a>
         <a href="#section-showcase">Layouts</a>
@@ -78,7 +78,7 @@
     </section>
 
     <footer class="landing-footer">
-      <span class="footer-logo">Snapain</span>
+      <span class="footer-logo"><%- include('partials/logo-icon') %>Snapain</span>
       <div class="footer-links">
         <a href="#">Privacy Policy</a>
         <a href="#">Terms of Service</a>
@@ -95,9 +95,11 @@
       <ol class="stepper" id="stepper">
         <li class="step active" data-step="1"><span class="step-dot">1</span><span class="step-label">Layout</span></li>
         <li class="step-line"></li>
-        <li class="step" data-step="2"><span class="step-dot">2</span><span class="step-label">Frame &amp; Filter</span></li>
+        <li class="step" data-step="2"><span class="step-dot">2</span><span class="step-label">Frames</span></li>
         <li class="step-line"></li>
         <li class="step" data-step="3"><span class="step-dot">3</span><span class="step-label">Snap</span></li>
+        <li class="step-line"></li>
+        <li class="step" data-step="4"><span class="step-dot">4</span><span class="step-label">Save</span></li>
       </ol>
     </header>
 
@@ -125,7 +127,7 @@
             <span class="layout-card-label">Duo</span>
           </button>
         </div>
-        <button id="btnToFrame" class="btn-wizard-primary">Next Step</button>
+        <button id="btnToFrame" class="btn-wizard-primary btn-wizard-primary--end">Next Step &rarr;</button>
       </section>
 
       <!-- ===== STEP 2: FRAME & FILTER ===== -->
@@ -196,8 +198,8 @@
             </div>
 
             <div class="wizard-actions">
-              <button id="btnBackToLayout" class="btn-wizard-secondary">Back</button>
-              <button id="btnToSnap" class="btn-wizard-primary">Next Step</button>
+              <button id="btnBackToLayout" class="btn-wizard-secondary">&larr; Back</button>
+              <button id="btnToSnap" class="btn-wizard-primary">Next Step &rarr;</button>
             </div>
           </div>
         </div>
@@ -218,7 +220,7 @@
         <div class="wizard-actions-stack" id="snapActions">
           <button id="btnContinue" class="btn-wizard-primary hidden">Lanjut ke Hasil</button>
           <div class="wizard-actions">
-            <button id="btnBackToFrame" class="btn-wizard-secondary">Back</button>
+            <button id="btnBackToFrame" class="btn-wizard-secondary">&larr; Back</button>
             <button id="btnRetakeAll" class="btn-wizard-secondary hidden">Ulangi Semua</button>
           </div>
         </div>

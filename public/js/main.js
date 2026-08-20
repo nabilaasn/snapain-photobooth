@@ -65,12 +65,16 @@
       el.classList.toggle('done', s < n);
       el.querySelector('.step-dot').textContent = s < n ? '✓' : String(s);
     });
+    document.querySelectorAll('#stepper .step-line').forEach((line, i) => {
+      line.classList.toggle('filled', i + 2 <= n);
+    });
   }
 
   function goToStep(n) {
     if (n === 1) showScreen('layout');
     else if (n === 2) showScreen('frame');
     else if (n === 3) showScreen('booth');
+    else if (n === 4) showScreen('result');
     updateStepper(n);
   }
 
@@ -553,7 +557,7 @@
 
   btnContinue.addEventListener('click', async () => {
     await composeResult();
-    showScreen('result');
+    goToStep(4);
   });
 
   btnRetakeAll.addEventListener('click', () => {

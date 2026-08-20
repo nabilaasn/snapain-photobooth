@@ -86,10 +86,19 @@ a {
 }
 
 .nav-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-family: 'Poppins', sans-serif;
   font-weight: 800;
   color: var(--blue);
   font-size: 1.25rem;
+}
+
+.logo-icon {
+  width: 1.6em;
+  height: 1.6em;
+  flex: 0 0 auto;
 }
 
 .nav-links {
@@ -321,11 +330,15 @@ a {
 }
 
 .footer-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
   font-family: 'Poppins', sans-serif;
   font-weight: 800;
   color: var(--blue);
   font-size: 1.1rem;
-  display: block;
   margin-bottom: 1rem;
 }
 
@@ -395,7 +408,6 @@ a {
   flex: 1;
   display: flex;
   align-items: flex-start;
-  justify-content: center;
   gap: 0.4rem;
   list-style: none;
   margin: 0;
@@ -403,6 +415,7 @@ a {
 }
 
 .step {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -441,10 +454,17 @@ a {
 }
 
 .step-line {
-  width: 24px;
+  flex: 1 1 auto;
+  align-self: flex-start;
   height: 2px;
+  min-width: 12px;
   background: var(--border);
   margin-top: 13px;
+  transition: background 0.2s ease;
+}
+
+.step-line.filled {
+  background: var(--blue);
 }
 
 .stage-card {
@@ -476,6 +496,7 @@ a {
   font-weight: 700;
   font-size: clamp(1.1rem, 2.4vh, 1.5rem);
   margin: 0 0 0.25rem;
+  color: var(--blue);
 }
 
 .screen-sub {
@@ -490,13 +511,17 @@ a {
 .layout-grid {
   flex: 1;
   min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
   gap: clamp(0.6rem, 2vh, 1rem);
-  align-content: center;
+  overflow-y: auto;
 }
 
 .layout-card {
+  flex: 1 1 130px;
+  max-width: 190px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -684,13 +709,13 @@ a {
 .wizard-actions {
   flex: 0 0 auto;
   display: flex;
+  justify-content: space-between;
   gap: 0.75rem;
   margin-top: clamp(0.75rem, 2vh, 1.25rem);
 }
 
 .wizard-actions button {
-  flex: 1;
-  min-width: 0;
+  flex: 0 0 auto;
 }
 
 .wizard-actions-stack {
@@ -723,11 +748,22 @@ a {
 .btn-wizard-primary {
   background: var(--blue);
   color: #fff;
-  padding: clamp(0.65rem, 2vh, 0.9rem) 1.5rem;
+  padding: clamp(0.65rem, 2vh, 0.9rem) 1.75rem;
   font-size: clamp(0.9rem, 2.1vh, 1rem);
   box-shadow: 0 8px 18px var(--shadow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-wizard-primary--end {
+  flex: 0 0 auto;
+  align-self: flex-end;
+}
+
+#btnContinue {
   width: 100%;
-  display: block;
+  align-self: stretch;
 }
 
 .btn-wizard-primary:hover {
@@ -746,8 +782,9 @@ a {
   border: 1px solid var(--border) !important;
   padding: clamp(0.65rem, 2vh, 0.9rem) 1.5rem;
   font-size: clamp(0.9rem, 2.1vh, 1rem);
-  width: 100%;
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-wizard-secondary:hover {
