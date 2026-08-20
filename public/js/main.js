@@ -18,9 +18,37 @@
     capturing: false,
   };
 
-  /* ---------------- screens ---------------- */
+  /* ---------------- landing <-> wizard ---------------- */
+  const pageLanding = document.getElementById('page-landing');
+  const appEl = document.getElementById('app');
+
+  function enterBooth() {
+    pageLanding.classList.add('hidden');
+    appEl.classList.remove('hidden');
+    document.documentElement.classList.add('locked');
+    goToStep(1);
+  }
+
+  function exitBooth() {
+    appEl.classList.add('hidden');
+    pageLanding.classList.remove('hidden');
+    document.documentElement.classList.remove('locked');
+    if (state.stream) {
+      state.stream.getTracks().forEach((t) => t.stop());
+      state.stream = null;
+    }
+  }
+
+  ['navStartBtn', 'heroStartBtn', 'ctaStartBtn'].forEach((id) => {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', enterBooth);
+  });
+  document.getElementById('btnExitBooth').addEventListener('click', exitBooth);
+
+  /* ---------------- wizard steps ---------------- */
   const screens = {
-    setup: document.getElementById('screen-setup'),
+    layout: document.getElementById('screen-layout'),
+    frame: document.getElementById('screen-frame'),
     booth: document.getElementById('screen-booth'),
     result: document.getElementById('screen-result'),
   };
@@ -30,12 +58,51 @@
     screens[name].classList.remove('hidden');
   }
 
+  function updateStepper(n) {
+    document.querySelectorAll('#stepper .step').forEach((el) => {
+      const s = Number(el.dataset.step);
+      el.classList.toggle('active', s === n);
+      el.classList.toggle('done', s < n);
+      el.querySelector('.step-dot').textContent = s < n ? '✓' : String(s);
+    });
+  }
+
+  function goToStep(n) {
+    if (n === 1) showScreen('layout');
+    else if (n === 2) showScreen('frame');
+    else if (n === 3) showScreen('booth');
+    updateStepper(n);
+  }
+
+  document.getElementById('btnToFrame').addEventListener('click', () => {
+    goToStep(2);
+    renderPreview();
+  });
+  document.getElementById('btnBackToLayout').addEventListener('click', () => goToStep(1));
+  document.getElementById('btnToSnap').addEventListener('click', async () => {
+    goToStep(3);
+    await startCamera();
+  });
+  document.getElementById('btnBackToFrame').addEventListener('click', () => goToStep(2));
+
+  document.querySelectorAll('.tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-panel').forEach((p) => p.classList.add('hidden'));
+      document.getElementById(btn.dataset.tab).classList.remove('hidden');
+    });
+  });
+
   /* ---------------- option chips ---------------- */
   const btnCapture = document.getElementById('btnCapture');
   const shotProgress = document.getElementById('shotProgress');
 
   function updateProgressLabel() {
-    shotProgress.textContent = `${state.shots.filter(Boolean).length} / ${state.grid.count} foto`;
+    const done = state.shots.filter(Boolean).length;
+    shotProgress.textContent = done === 0 && !state.capturing
+      ? `Tekan tombol untuk mulai (0/${state.grid.count})`
+      : `${done}/${state.grid.count} foto diambil`;
   }
 
   function initChips() {
@@ -49,8 +116,7 @@
           rows: Number(btn.dataset.rows),
           count: Number(btn.dataset.count),
         };
-        btnCapture.textContent = `Mulai Ambil Foto (${state.grid.count}x)`;
-        shotProgress.textContent = `0 / ${state.grid.count} foto`;
+        updateProgressLabel();
         renderPreview();
       });
     });
@@ -384,7 +450,7 @@
 
     // title
     ctx.fillStyle = theme.text;
-    ctx.font = "700 24px 'Baloo 2', cursive";
+    ctx.font = "700 24px 'Poppins', sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('Snapain', cardW / 2, pad + titleH / 2);
@@ -483,12 +549,6 @@
   }
 
   /* ---------------- navigation & actions ---------------- */
-  document.getElementById('btnStart').addEventListener('click', async () => {
-    resetBoothUI();
-    showScreen('booth');
-    await startCamera();
-  });
-
   btnCapture.addEventListener('click', captureSequence);
 
   btnContinue.addEventListener('click', async () => {
@@ -509,7 +569,7 @@
 
   document.getElementById('btnRetake').addEventListener('click', () => {
     resetBoothUI();
-    showScreen('booth');
+    goToStep(3);
   });
 
   /* ---------------- init ---------------- */

@@ -4,121 +4,239 @@
   <%- include('partials/head') %>
 </head>
 <body>
-  <div id="app">
-    <header class="site-header">
-      <h1 class="logo">Snapain</h1>
-      <p class="tagline">Photobooth online, jepret langsung dari browser kamu.</p>
+
+  <!-- ============ LANDING PAGE ============ -->
+  <div id="page-landing">
+    <nav class="site-nav">
+      <span class="nav-logo">Snapain</span>
+      <div class="nav-links">
+        <a href="#section-how">How It Works</a>
+        <a href="#section-showcase">Layouts</a>
+        <a href="#section-how">Frames</a>
+        <a href="#section-cta">Snap</a>
+      </div>
+      <button class="btn-nav-cta" id="navStartBtn">Start Booth</button>
+    </nav>
+
+    <header class="hero">
+      <p class="hero-eyebrow">The modern photobooth experience</p>
+      <h1 class="hero-title">Capture the Joy with <span>Snapain</span></h1>
+      <p class="hero-sub">Photobooth digital yang playful langsung dari browser — pilih layout, pasang frame lucu, jepret, dan download. Tanpa install, tanpa daftar.</p>
+      <button class="btn-hero-cta" id="heroStartBtn">Start Booth</button>
+    </header>
+
+    <section class="showcase" id="section-showcase">
+      <div class="showcase-card tilt-left">
+        <div class="showcase-strip">
+          <span class="showcase-shot"></span>
+          <span class="showcase-shot"></span>
+          <span class="showcase-shot"></span>
+        </div>
+      </div>
+      <div class="showcase-card">
+        <div class="showcase-strip showcase-strip--grid">
+          <span class="showcase-shot"></span>
+          <span class="showcase-shot"></span>
+          <span class="showcase-shot"></span>
+          <span class="showcase-shot"></span>
+        </div>
+      </div>
+      <div class="showcase-card tilt-right">
+        <div class="showcase-strip">
+          <span class="showcase-shot"></span>
+          <span class="showcase-shot"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="how-it-works" id="section-how">
+      <h2>How It Works</h2>
+      <p class="section-sub">Tiga langkah gampang buat foto strip kamu sendiri.</p>
+      <div class="how-grid">
+        <div class="how-card">
+          <span class="how-badge how-badge--a">1</span>
+          <h3>Choose Layout</h3>
+          <p>Pilih susunan grid foto kamu — strip klasik, grid kotak, atau lainnya.</p>
+        </div>
+        <div class="how-card">
+          <span class="how-badge how-badge--b">2</span>
+          <h3>Pick Frame &amp; Filter</h3>
+          <p>Kustomisasi tampilan pakai frame lucu dan filter foto favorit kamu.</p>
+        </div>
+        <div class="how-card">
+          <span class="how-badge how-badge--c">3</span>
+          <h3>Snap &amp; Download</h3>
+          <p>Ambil beberapa foto langsung dari kamera, lalu download hasilnya.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-banner" id="section-cta">
+      <h2>Ready to start snapping?</h2>
+      <p>Langsung masuk ke booth dan mulai jepret, nggak perlu daftar akun.</p>
+      <button class="btn-cta-banner" id="ctaStartBtn">Launch Snapain Booth</button>
+    </section>
+
+    <footer class="landing-footer">
+      <span class="footer-logo">Snapain</span>
+      <div class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Contact Support</a>
+      </div>
+      <p class="footer-copy">Snapain &mdash; momen kecil, kenangan selamanya.</p>
+    </footer>
+  </div>
+
+  <!-- ============ BOOTH WIZARD ============ -->
+  <div id="app" class="hidden">
+    <header class="app-topbar">
+      <button class="app-back" id="btnExitBooth" type="button" aria-label="Kembali">&lsaquo;</button>
+      <ol class="stepper" id="stepper">
+        <li class="step active" data-step="1"><span class="step-dot">1</span><span class="step-label">Layout</span></li>
+        <li class="step-line"></li>
+        <li class="step" data-step="2"><span class="step-dot">2</span><span class="step-label">Frame &amp; Filter</span></li>
+        <li class="step-line"></li>
+        <li class="step" data-step="3"><span class="step-dot">3</span><span class="step-label">Snap</span></li>
+      </ol>
     </header>
 
     <main class="stage-card">
 
-      <!-- ===== SETUP SCREEN ===== -->
-      <section class="screen" id="screen-setup">
-        <h2 class="screen-title">1. Pengaturan Foto</h2>
-
-        <div class="setup-layout">
-        <div class="setup-preview">
-          <canvas id="previewCanvas"></canvas>
-          <p class="preview-caption">Preview hasil foto kamu</p>
+      <!-- ===== STEP 1: LAYOUT ===== -->
+      <section class="screen" id="screen-layout">
+        <h2 class="screen-title">Choose Your Layout</h2>
+        <p class="screen-sub">Pilih susunan grid untuk foto strip kamu.</p>
+        <div class="layout-grid" id="gridRow">
+          <button class="layout-card grid-chip active" data-grid="strip4" data-cols="1" data-rows="4" data-count="4">
+            <span class="mini-grid mini-grid--1x4"><i></i><i></i><i></i><i></i></span>
+            <span class="layout-card-label">Strip Klasik</span>
+          </button>
+          <button class="layout-card grid-chip" data-grid="grid4" data-cols="2" data-rows="2" data-count="4">
+            <span class="mini-grid mini-grid--2x2"><i></i><i></i><i></i><i></i></span>
+            <span class="layout-card-label">Grid Kotak</span>
+          </button>
+          <button class="layout-card grid-chip" data-grid="strip3" data-cols="1" data-rows="3" data-count="3">
+            <span class="mini-grid mini-grid--1x3"><i></i><i></i><i></i></span>
+            <span class="layout-card-label">Strip Mini</span>
+          </button>
+          <button class="layout-card grid-chip" data-grid="duo" data-cols="1" data-rows="2" data-count="2">
+            <span class="mini-grid mini-grid--1x2"><i></i><i></i></span>
+            <span class="layout-card-label">Duo</span>
+          </button>
         </div>
-        <div class="setup-options">
+        <button id="btnToFrame" class="btn-wizard-primary">Next Step</button>
+      </section>
 
-        <div class="option-group">
-          <p class="option-label">Grid Foto</p>
-          <div class="option-row" id="gridRow">
-            <button class="option-chip grid-chip active" data-grid="strip4" data-cols="1" data-rows="4" data-count="4">
-              <span class="mini-grid mini-grid--1x4"><i></i><i></i><i></i><i></i></span>
-              Strip Klasik
-            </button>
-            <button class="option-chip grid-chip" data-grid="grid4" data-cols="2" data-rows="2" data-count="4">
-              <span class="mini-grid mini-grid--2x2"><i></i><i></i><i></i><i></i></span>
-              Grid Kotak
-            </button>
-            <button class="option-chip grid-chip" data-grid="strip3" data-cols="1" data-rows="3" data-count="3">
-              <span class="mini-grid mini-grid--1x3"><i></i><i></i><i></i></span>
-              Strip Mini
-            </button>
-            <button class="option-chip grid-chip" data-grid="duo" data-cols="1" data-rows="2" data-count="2">
-              <span class="mini-grid mini-grid--1x2"><i></i><i></i></span>
-              Duo
-            </button>
+      <!-- ===== STEP 2: FRAME & FILTER ===== -->
+      <section class="screen hidden" id="screen-frame">
+        <h2 class="screen-title">Frames &amp; Filters</h2>
+        <div class="frame-layout">
+          <div class="frame-preview">
+            <canvas id="previewCanvas"></canvas>
           </div>
-        </div>
+          <div class="frame-panel">
+            <div class="tabs">
+              <button class="tab-btn active" type="button" data-tab="tab-frames">Cute Frames</button>
+              <button class="tab-btn" type="button" data-tab="tab-filters">Photo Filters</button>
+            </div>
 
-        <div class="option-group">
-          <p class="option-label">Pilih Frame</p>
-          <div class="option-row" id="themeRow">
-            <button class="option-chip theme-chip active" data-theme="cloud"
-              data-bg="#e3f4ff" data-accent="#5fc3f0" data-text="#1f7fae"
-              data-style="scallop" data-bump="11">
-              Awan
-            </button>
-            <button class="option-chip theme-chip" data-theme="galaxy"
-              data-bg="#ece2ff" data-accent="#a98af2" data-text="#6a46c9"
-              data-style="dashed-star" data-bump="0">
-              Galaksi
-            </button>
-            <button class="option-chip theme-chip" data-theme="leaf"
-              data-bg="#dcfff2" data-accent="#5fdcb0" data-text="#1f9c78"
-              data-style="dotted-washi" data-bump="0">
-              Daun
-            </button>
-            <button class="option-chip theme-chip" data-theme="sunflower"
-              data-bg="#fff6cf" data-accent="#ffcf3d" data-text="#a87b00"
-              data-style="scallop" data-bump="16">
-              Matahari
-            </button>
+            <div class="tab-panel" id="tab-frames">
+              <div class="swatch-grid" id="themeRow">
+                <button class="swatch-card theme-chip active" data-theme="cloud"
+                  data-bg="#e3f4ff" data-accent="#5fc3f0" data-text="#1f7fae"
+                  data-style="scallop" data-bump="11">
+                  <span class="swatch-preview" style="background:#e3f4ff; border-color:#5fc3f0;"></span>
+                  <span class="swatch-label">Awan</span>
+                </button>
+                <button class="swatch-card theme-chip" data-theme="galaxy"
+                  data-bg="#ece2ff" data-accent="#a98af2" data-text="#6a46c9"
+                  data-style="dashed-star" data-bump="0">
+                  <span class="swatch-preview" style="background:#ece2ff; border-color:#a98af2;"></span>
+                  <span class="swatch-label">Galaksi</span>
+                </button>
+                <button class="swatch-card theme-chip" data-theme="leaf"
+                  data-bg="#dcfff2" data-accent="#5fdcb0" data-text="#1f9c78"
+                  data-style="dotted-washi" data-bump="0">
+                  <span class="swatch-preview" style="background:#dcfff2; border-color:#5fdcb0;"></span>
+                  <span class="swatch-label">Daun</span>
+                </button>
+                <button class="swatch-card theme-chip" data-theme="sunflower"
+                  data-bg="#fff6cf" data-accent="#ffcf3d" data-text="#a87b00"
+                  data-style="scallop" data-bump="16">
+                  <span class="swatch-preview" style="background:#fff6cf; border-color:#ffcf3d;"></span>
+                  <span class="swatch-label">Matahari</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="tab-panel hidden" id="tab-filters">
+              <div class="swatch-grid" id="filterRow">
+                <button class="swatch-card filter-chip active" data-filter="normal" data-css="none">
+                  <span class="swatch-preview swatch-preview--filter"></span>
+                  <span class="swatch-label">Normal</span>
+                </button>
+                <button class="swatch-card filter-chip" data-filter="bw" data-css="grayscale(1)">
+                  <span class="swatch-preview swatch-preview--filter" style="filter:grayscale(1);"></span>
+                  <span class="swatch-label">B&amp;W</span>
+                </button>
+                <button class="swatch-card filter-chip" data-filter="sepia" data-css="sepia(0.8)">
+                  <span class="swatch-preview swatch-preview--filter" style="filter:sepia(0.8);"></span>
+                  <span class="swatch-label">Sepia</span>
+                </button>
+                <button class="swatch-card filter-chip" data-filter="vintage" data-css="sepia(0.35) contrast(1.1) brightness(1.05) saturate(1.2)">
+                  <span class="swatch-preview swatch-preview--filter" style="filter:sepia(0.35) contrast(1.1) brightness(1.05) saturate(1.2);"></span>
+                  <span class="swatch-label">Vintage</span>
+                </button>
+                <button class="swatch-card filter-chip" data-filter="soft" data-css="brightness(1.12) saturate(1.35) contrast(0.95)">
+                  <span class="swatch-preview swatch-preview--filter" style="filter:brightness(1.12) saturate(1.35) contrast(0.95);"></span>
+                  <span class="swatch-label">Soft Glow</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="wizard-actions">
+              <button id="btnBackToLayout" class="btn-wizard-secondary">Back</button>
+              <button id="btnToSnap" class="btn-wizard-primary">Next Step</button>
+            </div>
           </div>
-        </div>
-
-        <div class="option-group">
-          <p class="option-label">Filter Foto</p>
-          <div class="option-row" id="filterRow">
-            <button class="option-chip filter-chip active" data-filter="normal" data-css="none">Normal</button>
-            <button class="option-chip filter-chip" data-filter="bw" data-css="grayscale(1)">B&amp;W</button>
-            <button class="option-chip filter-chip" data-filter="sepia" data-css="sepia(0.8)">Sepia</button>
-            <button class="option-chip filter-chip" data-filter="vintage" data-css="sepia(0.35) contrast(1.1) brightness(1.05) saturate(1.2)">Vintage</button>
-            <button class="option-chip filter-chip" data-filter="soft" data-css="brightness(1.12) saturate(1.35) contrast(0.95)">Soft Glow</button>
-          </div>
-        </div>
-
-        <button id="btnStart" class="btn-primary btn-big">Mulai</button>
-        </div>
         </div>
       </section>
 
-      <!-- ===== BOOTH SCREEN ===== -->
+      <!-- ===== STEP 3: SNAP ===== -->
       <section class="screen hidden" id="screen-booth">
-        <h2 class="screen-title">2. Ambil Foto</h2>
         <div class="camera-wrap">
           <video id="video" autoplay playsinline muted></video>
           <div class="countdown-overlay" id="countdownOverlay"></div>
           <div class="flash" id="flashEl"></div>
           <p class="cam-hint hidden" id="camHint">Izinkan akses kamera untuk mulai.</p>
         </div>
-        <p class="shot-progress" id="shotProgress">0 / 4 foto</p>
+        <button id="btnCapture" class="btn-capture-circle" type="button" aria-label="Mulai ambil foto"></button>
+        <p class="shot-progress" id="shotProgress">Tekan tombol untuk mulai (0/4)</p>
         <p class="retake-hint hidden" id="retakeHint">Klik tombol Ulang pada foto yang ingin diambil ulang.</p>
         <div class="thumbs" id="thumbsRow"></div>
-        <button id="btnCapture" class="btn-primary btn-big">Mulai Ambil Foto (4x)</button>
-        <button id="btnContinue" class="btn-primary btn-big hidden">Lanjut ke Hasil</button>
-        <button id="btnRetakeAll" class="btn-secondary btn-big hidden">Ulangi Semua</button>
+        <div class="wizard-actions-stack" id="snapActions">
+          <button id="btnContinue" class="btn-wizard-primary hidden">Lanjut ke Hasil</button>
+          <div class="wizard-actions">
+            <button id="btnBackToFrame" class="btn-wizard-secondary">Back</button>
+            <button id="btnRetakeAll" class="btn-wizard-secondary hidden">Ulangi Semua</button>
+          </div>
+        </div>
       </section>
 
-      <!-- ===== RESULT SCREEN ===== -->
+      <!-- ===== RESULT ===== -->
       <section class="screen hidden" id="screen-result">
-        <h2 class="screen-title">3. Hasil Foto</h2>
+        <h2 class="screen-title">Hasil Foto</h2>
         <div class="result-canvas-wrap">
           <canvas id="resultCanvas"></canvas>
         </div>
         <div class="result-actions">
-          <button id="btnDownload" class="btn-primary btn-big">Download</button>
-          <button id="btnRetake" class="btn-secondary btn-big">Ulangi</button>
+          <button id="btnDownload" class="btn-wizard-primary">Download</button>
+          <button id="btnRetake" class="btn-wizard-secondary">Ulangi</button>
         </div>
       </section>
 
     </main>
-
-    <footer class="site-footer">Snapain &mdash; momen kecil, kenangan selamanya.</footer>
   </div>
 
   <script src="/js/main.js"></script>
