@@ -1,18 +1,30 @@
 (() => {
   'use strict';
 
+  /* ---------------- template presets (grid shape x frame style) ---------------- */
+  const GRIDS = [
+    { id: 'strip4', cols: 1, rows: 4, count: 4 },
+    { id: 'grid4', cols: 2, rows: 2, count: 4 },
+    { id: 'strip3', cols: 1, rows: 3, count: 3 },
+    { id: 'duo', cols: 1, rows: 2, count: 2 },
+  ];
+
+  const THEMES = [
+    { id: 'cloud', bg: '#e3f4ff', accent: '#5fc3f0', text: '#1f7fae', style: 'scallop', bump: 11 },
+    { id: 'galaxy', bg: '#ece2ff', accent: '#a98af2', text: '#6a46c9', style: 'dashed-star', bump: 0 },
+    { id: 'leaf', bg: '#dcfff2', accent: '#5fdcb0', text: '#1f9c78', style: 'dotted-washi', bump: 0 },
+    { id: 'sunflower', bg: '#fff6cf', accent: '#ffcf3d', text: '#a87b00', style: 'scallop', bump: 16 },
+  ];
+
+  const TEMPLATES = [];
+  GRIDS.forEach((grid) => THEMES.forEach((theme) => TEMPLATES.push({ grid, theme })));
+
   /* ---------------- state ---------------- */
   const state = {
-    grid: { id: 'strip4', cols: 1, rows: 4, count: 4 },
-    theme: {
-      id: 'cloud',
-      bg: '#e3f4ff',
-      accent: '#5fc3f0',
-      text: '#1f7fae',
-      style: 'scallop',
-      bump: 11,
-    },
+    grid: TEMPLATES[0].grid,
+    theme: TEMPLATES[0].theme,
     filter: { id: 'normal', css: 'none' },
+    source: 'camera', // 'camera' | 'gallery'
     stream: null,
     shots: [], // dataURLs, index-aligned with grid slots
     capturing: false,
@@ -47,8 +59,8 @@
 
   /* ---------------- wizard steps ---------------- */
   const screens = {
-    layout: document.getElementById('screen-layout'),
-    frame: document.getElementById('screen-frame'),
+    template: document.getElementById('screen-template'),
+    filter: document.getElementById('screen-filter'),
     booth: document.getElementById('screen-booth'),
     result: document.getElementById('screen-result'),
   };
@@ -71,83 +83,82 @@
   }
 
   function goToStep(n) {
-    if (n === 1) showScreen('layout');
-    else if (n === 2) showScreen('frame');
-    else if (n === 3) showScreen('booth');
-    else if (n === 4) showScreen('result');
+    if (n === 1) showScreen('template');
+    else if (n === 2) showScreen('filter');
+    else if (n === 3) {
+      showScreen('booth');
+      if (state.source === 'camera') {
+        startCamera();
+        updateProgressLabel();
+      } else {
+        renderGalleryThumbs();
+        updateGalleryState();
+      }
+    } else if (n === 4) showScreen('result');
     updateStepper(n);
   }
 
-  document.getElementById('btnToFrame').addEventListener('click', () => {
-    goToStep(2);
-    renderPreview();
-  });
-  document.getElementById('btnBackToLayout').addEventListener('click', () => goToStep(1));
-  document.getElementById('btnToSnap').addEventListener('click', async () => {
-    goToStep(3);
-    await startCamera();
-  });
-  document.getElementById('btnBackToFrame').addEventListener('click', () => goToStep(2));
+  document.getElementById('btnTemplateNext').addEventListener('click', () => goToStep(2));
+  document.getElementById('btnFilterBack').addEventListener('click', () => goToStep(1));
+  document.getElementById('btnFilterNext').addEventListener('click', () => goToStep(3));
+  document.getElementById('btnCaptureBack').addEventListener('click', () => goToStep(2));
 
-  document.querySelectorAll('.tab-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.querySelectorAll('.tab-panel').forEach((p) => p.classList.add('hidden'));
-      document.getElementById(btn.dataset.tab).classList.remove('hidden');
+  /* ---------------- step 1: template gallery ---------------- */
+  const templateRow = document.getElementById('templateRow');
+
+  function initTemplateGallery() {
+    TEMPLATES.forEach((tpl, idx) => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'template-card';
+      if (idx === 0) card.classList.add('active');
+
+      const canvas = document.createElement('canvas');
+      card.appendChild(canvas);
+      templateRow.appendChild(card);
+      paintCard(canvas, tpl.theme, tpl.grid, PREVIEW_ASPECT, (ctx, x, y, w, h) => {
+        drawPlaceholderSlot(ctx, x, y, w, h);
+      });
+
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.template-card').forEach((c) => c.classList.remove('active'));
+        card.classList.add('active');
+        const countChanged = state.grid.count !== tpl.grid.count;
+        state.grid = tpl.grid;
+        state.theme = tpl.theme;
+        if (countChanged) state.shots = [];
+        updateProgressLabel();
+      });
     });
-  });
-
-  /* ---------------- option chips ---------------- */
-  const btnCapture = document.getElementById('btnCapture');
-  const shotProgress = document.getElementById('shotProgress');
-
-  function updateProgressLabel() {
-    const done = state.shots.filter(Boolean).length;
-    shotProgress.textContent = done === 0 && !state.capturing
-      ? `Tekan tombol untuk mulai (0/${state.grid.count})`
-      : `${done}/${state.grid.count} foto diambil`;
   }
 
-  function initChips() {
-    document.querySelectorAll('#gridRow .grid-chip').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#gridRow .grid-chip').forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.grid = {
-          id: btn.dataset.grid,
-          cols: Number(btn.dataset.cols),
-          rows: Number(btn.dataset.rows),
-          count: Number(btn.dataset.count),
-        };
-        updateProgressLabel();
-        renderPreview();
-      });
-    });
-
-    document.querySelectorAll('#themeRow .theme-chip').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#themeRow .theme-chip').forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.theme = {
-          id: btn.dataset.theme,
-          bg: btn.dataset.bg,
-          accent: btn.dataset.accent,
-          text: btn.dataset.text,
-          style: btn.dataset.style,
-          bump: Number(btn.dataset.bump || 0),
-        };
-        renderPreview();
-      });
-    });
-
+  /* ---------------- step 2: filter ---------------- */
+  function initFilterChips() {
     document.querySelectorAll('#filterRow .filter-chip').forEach((btn) => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('#filterRow .filter-chip').forEach((b) => b.classList.remove('active'));
         btn.classList.add('active');
         state.filter = { id: btn.dataset.filter, css: btn.dataset.css };
         video.style.filter = state.filter.css === 'none' ? 'none' : state.filter.css;
-        renderPreview();
+      });
+    });
+  }
+
+  /* ---------------- step 3: photo source (camera vs gallery) ---------------- */
+  const panelCamera = document.getElementById('panel-camera');
+  const panelGallery = document.getElementById('panel-gallery');
+
+  function initSourceToggle() {
+    document.querySelectorAll('.source-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (btn.classList.contains('active')) return;
+        document.querySelectorAll('.source-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.source = btn.dataset.source;
+        panelCamera.classList.toggle('hidden', state.source !== 'camera');
+        panelGallery.classList.toggle('hidden', state.source !== 'gallery');
+        resetShots();
+        if (state.source === 'camera') startCamera();
       });
     });
   }
@@ -174,13 +185,22 @@
     }
   }
 
-  /* ---------------- capture ---------------- */
+  /* ---------------- capture (camera mode) ---------------- */
   const countdownOverlay = document.getElementById('countdownOverlay');
   const flashEl = document.getElementById('flashEl');
   const thumbsRow = document.getElementById('thumbsRow');
+  const shotProgress = document.getElementById('shotProgress');
   const retakeHint = document.getElementById('retakeHint');
+  const btnCapture = document.getElementById('btnCapture');
   const btnContinue = document.getElementById('btnContinue');
   const btnRetakeAll = document.getElementById('btnRetakeAll');
+
+  function updateProgressLabel() {
+    const done = state.shots.filter(Boolean).length;
+    shotProgress.textContent = done === 0 && !state.capturing
+      ? `Tekan tombol untuk mulai (0/${state.grid.count})`
+      : `${done}/${state.grid.count} foto diambil`;
+  }
 
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -204,8 +224,8 @@
     c.width = vw;
     c.height = vh;
     const ctx = c.getContext('2d');
-    ctx.filter = state.filter.css === 'none' ? 'none' : state.filter.css;
     // mirror horizontally so the photo matches what the user saw in the preview
+    // (the filter is applied later at compose time, not baked in here)
     ctx.translate(vw, 0);
     ctx.scale(-1, 1);
     ctx.drawImage(video, 0, 0, vw, vh);
@@ -294,15 +314,101 @@
     setLocked(false);
   }
 
-  function resetBoothUI() {
-    state.shots = [];
+  function resetCameraUI() {
     thumbsRow.innerHTML = '';
     updateProgressLabel();
     btnCapture.disabled = false;
     btnCapture.classList.remove('hidden');
+    retakeHint.classList.add('hidden');
+  }
+
+  /* ---------------- pick from gallery ---------------- */
+  const galleryInput = document.getElementById('galleryInput');
+  const galleryThumbsRow = document.getElementById('galleryThumbsRow');
+  const galleryHint = document.getElementById('galleryHint');
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderGalleryThumbs() {
+    galleryThumbsRow.innerHTML = '';
+    for (let i = 0; i < state.grid.count; i++) {
+      const slot = document.createElement('div');
+      slot.className = 'gallery-slot';
+
+      if (state.shots[i]) {
+        const img = document.createElement('img');
+        img.src = state.shots[i];
+        slot.appendChild(img);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'thumb-retake-btn';
+        removeBtn.textContent = 'Hapus';
+        removeBtn.addEventListener('click', () => {
+          state.shots[i] = undefined;
+          renderGalleryThumbs();
+          updateGalleryState();
+        });
+        slot.appendChild(removeBtn);
+      } else {
+        slot.classList.add('gallery-slot--empty');
+        slot.textContent = '+';
+        slot.addEventListener('click', () => galleryInput.click());
+      }
+
+      galleryThumbsRow.appendChild(slot);
+    }
+  }
+
+  function updateGalleryState() {
+    const done = state.shots.filter(Boolean).length;
+    galleryHint.textContent = done >= state.grid.count
+      ? 'Semua foto sudah dipilih.'
+      : `Pilih ${state.grid.count - done} foto lagi dari galeri kamu.`;
+    btnContinue.classList.toggle('hidden', done < state.grid.count);
+  }
+
+  function resetGalleryUI() {
+    if (galleryInput) galleryInput.value = '';
+    renderGalleryThumbs();
+    updateGalleryState();
+  }
+
+  function initGalleryPicker() {
+    galleryInput.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files || []);
+      e.target.value = ''; // allow re-picking the same file later
+      if (!files.length) return;
+
+      const emptyIdx = [];
+      for (let i = 0; i < state.grid.count; i++) {
+        if (!state.shots[i]) emptyIdx.push(i);
+      }
+      const toFill = files.slice(0, emptyIdx.length);
+      const dataUrls = await Promise.all(toFill.map(readFileAsDataURL));
+      dataUrls.forEach((url, k) => {
+        state.shots[emptyIdx[k]] = url;
+      });
+      renderGalleryThumbs();
+      updateGalleryState();
+    });
+  }
+
+  /* ---------------- shared: reset shots when switching source / retaking ---------------- */
+  function resetShots() {
+    state.shots = [];
+    state.capturing = false;
     btnContinue.classList.add('hidden');
     btnRetakeAll.classList.add('hidden');
-    retakeHint.classList.add('hidden');
+    if (state.source === 'camera') resetCameraUI();
+    else resetGalleryUI();
   }
 
   /* ---------------- shared card renderer ---------------- */
@@ -499,21 +605,16 @@
     ctx.restore();
   }
 
-  /* ---------------- live setup preview ---------------- */
-  const previewCanvas = document.getElementById('previewCanvas');
   const PREVIEW_ASPECT = 540 / 720; // matches the ideal camera resolution
 
+  // simple person silhouette used on template gallery thumbnails
   function drawPlaceholderSlot(ctx, x, y, w, h) {
-    ctx.save();
-    ctx.filter = state.filter.css === 'none' ? 'none' : state.filter.css;
-
     const grad = ctx.createLinearGradient(x, y, x, y + h);
     grad.addColorStop(0, '#dce8f0');
     grad.addColorStop(1, '#b7ccd9');
     ctx.fillStyle = grad;
     ctx.fillRect(x, y, w, h);
 
-    // simple person silhouette so the filter effect reads clearly
     ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
     const cx = x + w / 2;
     const headR = h * 0.15;
@@ -527,15 +628,6 @@
     ctx.quadraticCurveTo(cx, y + h * 0.55, cx + headR * 1.7, y + h * 1.05);
     ctx.closePath();
     ctx.fill();
-
-    ctx.restore();
-  }
-
-  function renderPreview() {
-    if (!previewCanvas) return;
-    paintCard(previewCanvas, state.theme, state.grid, PREVIEW_ASPECT, (ctx, x, y, w, h) => {
-      drawPlaceholderSlot(ctx, x, y, w, h);
-    });
   }
 
   /* ---------------- compose final result ---------------- */
@@ -547,8 +639,11 @@
       try { await document.fonts.ready; } catch (e) { /* ignore */ }
     }
     const aspect = imgs[0].height / imgs[0].width;
+    const filterCss = state.filter.css === 'none' ? 'none' : state.filter.css;
     paintCard(resultCanvas, state.theme, state.grid, aspect, (ctx, x, y, w, h, idx) => {
+      ctx.filter = filterCss;
       ctx.drawImage(imgs[idx], x, y, w, h);
+      ctx.filter = 'none';
     });
   }
 
@@ -561,7 +656,7 @@
   });
 
   btnRetakeAll.addEventListener('click', () => {
-    resetBoothUI();
+    resetShots();
   });
 
   document.getElementById('btnDownload').addEventListener('click', () => {
@@ -572,11 +667,14 @@
   });
 
   document.getElementById('btnRetake').addEventListener('click', () => {
-    resetBoothUI();
+    resetShots();
     goToStep(3);
   });
 
   /* ---------------- init ---------------- */
-  initChips();
-  renderPreview();
+  initTemplateGallery();
+  initFilterChips();
+  initSourceToggle();
+  initGalleryPicker();
+  updateProgressLabel();
 })();

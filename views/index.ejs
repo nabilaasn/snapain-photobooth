@@ -21,7 +21,7 @@
     <header class="hero">
       <p class="hero-eyebrow">The modern photobooth experience</p>
       <h1 class="hero-title">Capture the Joy with <span>Snapain</span></h1>
-      <p class="hero-sub">Photobooth digital yang playful langsung dari browser — pilih layout, pasang frame lucu, jepret, dan download. Tanpa install, tanpa daftar.</p>
+      <p class="hero-sub">Photobooth digital yang playful langsung dari browser — pilih template, jepret langsung atau upload dari galeri, lalu download. Tanpa install, tanpa daftar.</p>
       <button class="btn-hero-cta" id="heroStartBtn">Start Booth</button>
     </header>
 
@@ -55,18 +55,18 @@
       <div class="how-grid">
         <div class="how-card">
           <span class="how-badge how-badge--a">1</span>
-          <h3>Choose Layout</h3>
-          <p>Pilih susunan grid foto kamu — strip klasik, grid kotak, atau lainnya.</p>
+          <h3>Choose Template</h3>
+          <p>Klik langsung template grid + frame yang kamu suka, nggak perlu pilih nama-nama.</p>
         </div>
         <div class="how-card">
           <span class="how-badge how-badge--b">2</span>
-          <h3>Pick Frame &amp; Filter</h3>
-          <p>Kustomisasi tampilan pakai frame lucu dan filter foto favorit kamu.</p>
+          <h3>Pick a Filter</h3>
+          <p>Kasih efek warna favorit kamu ke hasil fotonya.</p>
         </div>
         <div class="how-card">
           <span class="how-badge how-badge--c">3</span>
-          <h3>Snap &amp; Download</h3>
-          <p>Ambil beberapa foto langsung dari kamera, lalu download hasilnya.</p>
+          <h3>Snap or Upload</h3>
+          <p>Jepret langsung dari kamera atau pilih foto dari galeri, lalu download hasilnya.</p>
         </div>
       </div>
     </section>
@@ -93,11 +93,11 @@
     <header class="app-topbar">
       <button class="app-back" id="btnExitBooth" type="button" aria-label="Kembali">&lsaquo;</button>
       <ol class="stepper" id="stepper">
-        <li class="step active" data-step="1"><span class="step-dot">1</span><span class="step-label">Layout</span></li>
+        <li class="step active" data-step="1"><span class="step-dot">1</span><span class="step-label">Template</span></li>
         <li class="step-line"></li>
-        <li class="step" data-step="2"><span class="step-dot">2</span><span class="step-label">Frames</span></li>
+        <li class="step" data-step="2"><span class="step-dot">2</span><span class="step-label">Filter</span></li>
         <li class="step-line"></li>
-        <li class="step" data-step="3"><span class="step-dot">3</span><span class="step-label">Snap</span></li>
+        <li class="step" data-step="3"><span class="step-dot">3</span><span class="step-label">Foto</span></li>
         <li class="step-line"></li>
         <li class="step" data-step="4"><span class="step-dot">4</span><span class="step-label">Save</span></li>
       </ol>
@@ -105,122 +105,76 @@
 
     <main class="stage-card">
 
-      <!-- ===== STEP 1: LAYOUT ===== -->
-      <section class="screen" id="screen-layout">
-        <h2 class="screen-title">Choose Your Layout</h2>
-        <p class="screen-sub">Pilih susunan grid untuk foto strip kamu.</p>
-        <div class="layout-grid" id="gridRow">
-          <button class="layout-card grid-chip active" data-grid="strip4" data-cols="1" data-rows="4" data-count="4">
-            <span class="mini-grid mini-grid--1x4"><i></i><i></i><i></i><i></i></span>
-            <span class="layout-card-label">Strip Klasik</span>
-          </button>
-          <button class="layout-card grid-chip" data-grid="grid4" data-cols="2" data-rows="2" data-count="4">
-            <span class="mini-grid mini-grid--2x2"><i></i><i></i><i></i><i></i></span>
-            <span class="layout-card-label">Grid Kotak</span>
-          </button>
-          <button class="layout-card grid-chip" data-grid="strip3" data-cols="1" data-rows="3" data-count="3">
-            <span class="mini-grid mini-grid--1x3"><i></i><i></i><i></i></span>
-            <span class="layout-card-label">Strip Mini</span>
-          </button>
-          <button class="layout-card grid-chip" data-grid="duo" data-cols="1" data-rows="2" data-count="2">
-            <span class="mini-grid mini-grid--1x2"><i></i><i></i></span>
-            <span class="layout-card-label">Duo</span>
-          </button>
-        </div>
-        <button id="btnToFrame" class="btn-wizard-primary btn-wizard-primary--end">Next Step &rarr;</button>
+      <!-- ===== STEP 1: TEMPLATE (grid + frame combined, visual only) ===== -->
+      <section class="screen" id="screen-template">
+        <h2 class="screen-title">Choose Your Template</h2>
+        <p class="screen-sub">Klik langsung template yang kamu suka.</p>
+        <div class="template-grid" id="templateRow"></div>
+        <button id="btnTemplateNext" class="btn-wizard-primary btn-wizard-primary--end">Next Step &rarr;</button>
       </section>
 
-      <!-- ===== STEP 2: FRAME & FILTER ===== -->
-      <section class="screen hidden" id="screen-frame">
-        <h2 class="screen-title">Frames &amp; Filters</h2>
-        <div class="frame-layout">
-          <div class="frame-preview">
-            <canvas id="previewCanvas"></canvas>
-          </div>
-          <div class="frame-panel">
-            <div class="tabs">
-              <button class="tab-btn active" type="button" data-tab="tab-frames">Cute Frames</button>
-              <button class="tab-btn" type="button" data-tab="tab-filters">Photo Filters</button>
-            </div>
-
-            <div class="tab-panel" id="tab-frames">
-              <div class="swatch-grid" id="themeRow">
-                <button class="swatch-card theme-chip active" data-theme="cloud"
-                  data-bg="#e3f4ff" data-accent="#5fc3f0" data-text="#1f7fae"
-                  data-style="scallop" data-bump="11">
-                  <span class="swatch-preview" style="background:#e3f4ff; border-color:#5fc3f0;"></span>
-                  <span class="swatch-label">Awan</span>
-                </button>
-                <button class="swatch-card theme-chip" data-theme="galaxy"
-                  data-bg="#ece2ff" data-accent="#a98af2" data-text="#6a46c9"
-                  data-style="dashed-star" data-bump="0">
-                  <span class="swatch-preview" style="background:#ece2ff; border-color:#a98af2;"></span>
-                  <span class="swatch-label">Galaksi</span>
-                </button>
-                <button class="swatch-card theme-chip" data-theme="leaf"
-                  data-bg="#dcfff2" data-accent="#5fdcb0" data-text="#1f9c78"
-                  data-style="dotted-washi" data-bump="0">
-                  <span class="swatch-preview" style="background:#dcfff2; border-color:#5fdcb0;"></span>
-                  <span class="swatch-label">Daun</span>
-                </button>
-                <button class="swatch-card theme-chip" data-theme="sunflower"
-                  data-bg="#fff6cf" data-accent="#ffcf3d" data-text="#a87b00"
-                  data-style="scallop" data-bump="16">
-                  <span class="swatch-preview" style="background:#fff6cf; border-color:#ffcf3d;"></span>
-                  <span class="swatch-label">Matahari</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="tab-panel hidden" id="tab-filters">
-              <div class="swatch-grid" id="filterRow">
-                <button class="swatch-card filter-chip active" data-filter="normal" data-css="none">
-                  <span class="swatch-preview swatch-preview--filter"></span>
-                  <span class="swatch-label">Normal</span>
-                </button>
-                <button class="swatch-card filter-chip" data-filter="bw" data-css="grayscale(1)">
-                  <span class="swatch-preview swatch-preview--filter" style="filter:grayscale(1);"></span>
-                  <span class="swatch-label">B&amp;W</span>
-                </button>
-                <button class="swatch-card filter-chip" data-filter="sepia" data-css="sepia(0.8)">
-                  <span class="swatch-preview swatch-preview--filter" style="filter:sepia(0.8);"></span>
-                  <span class="swatch-label">Sepia</span>
-                </button>
-                <button class="swatch-card filter-chip" data-filter="vintage" data-css="sepia(0.35) contrast(1.1) brightness(1.05) saturate(1.2)">
-                  <span class="swatch-preview swatch-preview--filter" style="filter:sepia(0.35) contrast(1.1) brightness(1.05) saturate(1.2);"></span>
-                  <span class="swatch-label">Vintage</span>
-                </button>
-                <button class="swatch-card filter-chip" data-filter="soft" data-css="brightness(1.12) saturate(1.35) contrast(0.95)">
-                  <span class="swatch-preview swatch-preview--filter" style="filter:brightness(1.12) saturate(1.35) contrast(0.95);"></span>
-                  <span class="swatch-label">Soft Glow</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="wizard-actions">
-              <button id="btnBackToLayout" class="btn-wizard-secondary">&larr; Back</button>
-              <button id="btnToSnap" class="btn-wizard-primary">Next Step &rarr;</button>
-            </div>
-          </div>
+      <!-- ===== STEP 2: FILTER ===== -->
+      <section class="screen hidden" id="screen-filter">
+        <h2 class="screen-title">Pilih Filter</h2>
+        <p class="screen-sub">Efek warna buat hasil fotomu.</p>
+        <div class="swatch-grid swatch-grid--filters" id="filterRow">
+          <button class="swatch-card filter-chip active" data-filter="normal" data-css="none">
+            <span class="swatch-preview swatch-preview--filter"></span>
+            <span class="swatch-label">Normal</span>
+          </button>
+          <button class="swatch-card filter-chip" data-filter="bw" data-css="grayscale(1)">
+            <span class="swatch-preview swatch-preview--filter" style="filter:grayscale(1);"></span>
+            <span class="swatch-label">B&amp;W</span>
+          </button>
+          <button class="swatch-card filter-chip" data-filter="sepia" data-css="sepia(0.8)">
+            <span class="swatch-preview swatch-preview--filter" style="filter:sepia(0.8);"></span>
+            <span class="swatch-label">Sepia</span>
+          </button>
+          <button class="swatch-card filter-chip" data-filter="vintage" data-css="sepia(0.35) contrast(1.1) brightness(1.05) saturate(1.2)">
+            <span class="swatch-preview swatch-preview--filter" style="filter:sepia(0.35) contrast(1.1) brightness(1.05) saturate(1.2);"></span>
+            <span class="swatch-label">Vintage</span>
+          </button>
+          <button class="swatch-card filter-chip" data-filter="soft" data-css="brightness(1.12) saturate(1.35) contrast(0.95)">
+            <span class="swatch-preview swatch-preview--filter" style="filter:brightness(1.12) saturate(1.35) contrast(0.95);"></span>
+            <span class="swatch-label">Soft Glow</span>
+          </button>
+        </div>
+        <div class="wizard-actions">
+          <button id="btnFilterBack" class="btn-wizard-secondary">&larr; Back</button>
+          <button id="btnFilterNext" class="btn-wizard-primary">Next Step &rarr;</button>
         </div>
       </section>
 
-      <!-- ===== STEP 3: SNAP ===== -->
+      <!-- ===== STEP 3: FOTO (live capture or pick from gallery) ===== -->
       <section class="screen hidden" id="screen-booth">
-        <div class="camera-wrap">
-          <video id="video" autoplay playsinline muted></video>
-          <div class="countdown-overlay" id="countdownOverlay"></div>
-          <div class="flash" id="flashEl"></div>
-          <p class="cam-hint hidden" id="camHint">Izinkan akses kamera untuk mulai.</p>
+        <div class="source-toggle" id="sourceToggle">
+          <button class="source-btn active" type="button" data-source="camera">Ambil Foto</button>
+          <button class="source-btn" type="button" data-source="gallery">Pilih dari Galeri</button>
         </div>
-        <button id="btnCapture" class="btn-capture-circle" type="button" aria-label="Mulai ambil foto"></button>
-        <p class="shot-progress" id="shotProgress">Tekan tombol untuk mulai (0/4)</p>
-        <p class="retake-hint hidden" id="retakeHint">Klik tombol Ulang pada foto yang ingin diambil ulang.</p>
-        <div class="thumbs" id="thumbsRow"></div>
+
+        <div class="source-panel" id="panel-camera">
+          <div class="camera-wrap">
+            <video id="video" autoplay playsinline muted></video>
+            <div class="countdown-overlay" id="countdownOverlay"></div>
+            <div class="flash" id="flashEl"></div>
+            <p class="cam-hint hidden" id="camHint">Izinkan akses kamera untuk mulai.</p>
+          </div>
+          <button id="btnCapture" class="btn-capture-circle" type="button" aria-label="Mulai ambil foto"></button>
+          <p class="shot-progress" id="shotProgress">Tekan tombol untuk mulai (0/4)</p>
+          <p class="retake-hint hidden" id="retakeHint">Klik tombol Ulang pada foto yang ingin diambil ulang.</p>
+          <div class="thumbs" id="thumbsRow"></div>
+        </div>
+
+        <div class="source-panel hidden" id="panel-gallery">
+          <input type="file" id="galleryInput" accept="image/*" multiple class="hidden" />
+          <div class="gallery-grid" id="galleryThumbsRow"></div>
+          <p class="gallery-hint" id="galleryHint">Pilih foto dari galeri kamu.</p>
+        </div>
+
         <div class="wizard-actions-stack" id="snapActions">
           <button id="btnContinue" class="btn-wizard-primary hidden">Lanjut ke Hasil</button>
           <div class="wizard-actions">
-            <button id="btnBackToFrame" class="btn-wizard-secondary">&larr; Back</button>
+            <button id="btnCaptureBack" class="btn-wizard-secondary">&larr; Back</button>
             <button id="btnRetakeAll" class="btn-wizard-secondary hidden">Ulangi Semua</button>
           </div>
         </div>
