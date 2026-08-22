@@ -16,6 +16,13 @@ app.use((req, res) => {
   res.status(404).render('404', { title: 'Halaman Tidak Ditemukan' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Snapain jalan di http://localhost:${PORT}`);
-});
+// only listen on a port when run directly (`node server.js`) — Vercel imports
+// `app` itself and calls it as a request handler, it never runs this file
+// as the entry point.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Snapain jalan di http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
