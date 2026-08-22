@@ -19,6 +19,16 @@
   const TEMPLATES = [];
   GRIDS.forEach((grid) => THEMES.forEach((theme) => TEMPLATES.push({ grid, theme })));
 
+  // hand-drawn "Blue Denim Y2K" pack — each is a full custom illustration
+  // instead of the generic border-on-a-rect theme system above. Function
+  // declarations are hoisted, so these names resolve even though the
+  // functions themselves are defined further down the file.
+  const STRIP3 = GRIDS[2];
+  TEMPLATES.push({ grid: STRIP3, theme: { id: 'denim-pocket', custom: drawDenimPocketCard } });
+  TEMPLATES.push({ grid: STRIP3, theme: { id: 'denim-heart', custom: drawDenimHeartCard } });
+  TEMPLATES.push({ grid: STRIP3, theme: { id: 'denim-diamond', custom: drawDenimDiamondCard } });
+  TEMPLATES.push({ grid: STRIP3, theme: { id: 'denim-rounded', custom: drawDenimRoundedCard } });
+
   /* ---------------- state ---------------- */
   const state = {
     grid: TEMPLATES[0].grid,
@@ -116,7 +126,7 @@
       const canvas = document.createElement('canvas');
       card.appendChild(canvas);
       templateRow.appendChild(card);
-      paintCard(canvas, tpl.theme, tpl.grid, PREVIEW_ASPECT, (ctx, x, y, w, h) => {
+      renderTemplateCard(canvas, tpl.theme, tpl.grid, PREVIEW_ASPECT, (ctx, x, y, w, h) => {
         drawPlaceholderSlot(ctx, x, y, w, h);
       });
 
@@ -630,6 +640,473 @@
     ctx.fill();
   }
 
+  // renders one template card: the generic grid+border theme system, or a
+  // fully custom illustration (the denim pack) when theme.custom is set.
+  function renderTemplateCard(canvas, theme, grid, aspect, drawSlot) {
+    if (theme.custom) {
+      theme.custom(canvas, aspect, drawSlot);
+      return;
+    }
+    paintCard(canvas, theme, grid, aspect, drawSlot);
+  }
+
+  /* ================= "Blue Denim Y2K" hand-drawn template pack ================= */
+  const DENIM = '#3d5878';
+  const DENIM_DARK = '#263c53';
+  const DENIM_LIGHT = '#7b9bb8';
+
+  // deterministic pseudo-random so the same template always renders identically
+  function makeRand(seed) {
+    let s = seed;
+    return () => {
+      s = (s * 9301 + 49297) % 233280;
+      return s / 233280;
+    };
+  }
+
+  function speckleTexture(ctx, x, y, w, h, count, colorA, colorB, seed) {
+    const rand = makeRand(seed);
+    for (let i = 0; i < count; i++) {
+      ctx.fillStyle = rand() > 0.5 ? colorA : colorB;
+      ctx.fillRect(x + rand() * w, y + rand() * h, 1.3, 1.3);
+    }
+  }
+
+  function fillDenimTexture(ctx, x, y, w, h, base, seed) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, w, h);
+    ctx.clip();
+    ctx.fillStyle = base;
+    ctx.fillRect(x, y, w, h);
+    const grad = ctx.createLinearGradient(x, y, x, y + h);
+    grad.addColorStop(0, 'rgba(255,255,255,0.10)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.16)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, y, w, h);
+    speckleTexture(ctx, x, y, w, h, 260, 'rgba(255,255,255,0.14)', 'rgba(10,20,35,0.16)', seed);
+    ctx.restore();
+  }
+
+  function fillGingham(ctx, x, y, w, h, color, seed) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, w, h);
+    ctx.clip();
+    ctx.fillStyle = '#fbf8f0';
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.4;
+    const step = 9;
+    for (let px = x - step; px < x + w; px += step * 2) ctx.fillRect(px, y, step, h);
+    for (let py = y - step; py < y + h; py += step * 2) ctx.fillRect(x, py, w, step);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  function heartPath(ctx, cx, cy, w, h) {
+    const wq = w / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + h * 0.46);
+    ctx.bezierCurveTo(cx - wq * 1.3, cy - h * 0.02, cx - wq * 0.65, cy - h * 0.62, cx, cy - h * 0.2);
+    ctx.bezierCurveTo(cx + wq * 0.65, cy - h * 0.62, cx + wq * 1.3, cy - h * 0.02, cx, cy + h * 0.46);
+    ctx.closePath();
+  }
+
+  function laceRing(ctx, pathFn, color, bumpR) {
+    // sprinkle small scallop bumps just outside a shape's own outline
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.95;
+    const steps = 40;
+    for (let i = 0; i < steps; i++) {
+      const t = i / steps;
+      pathFn(t, (px, py) => {
+        ctx.beginPath();
+        ctx.arc(px, py, bumpR, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+    ctx.restore();
+  }
+
+  function pocketPath(ctx, x, y, w, h) {
+    const inset = w * 0.05;
+    const r = 12;
+    ctx.beginPath();
+    ctx.moveTo(x + inset, y);
+    ctx.lineTo(x + w - inset, y);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.closePath();
+  }
+
+  /* ---- flat vector stickers (hand-drawn, not emoji) ---- */
+  function drawStarSticker(ctx, cx, cy, r, color) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const a1 = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+      const a2 = a1 + Math.PI / 5;
+      const p1 = [Math.cos(a1) * r, Math.sin(a1) * r];
+      const p2 = [Math.cos(a2) * r * 0.42, Math.sin(a2) * r * 0.42];
+      if (i === 0) ctx.moveTo(p1[0], p1[1]); else ctx.lineTo(p1[0], p1[1]);
+      ctx.lineTo(p2[0], p2[1]);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawFishSticker(ctx, cx, cy, size, color) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size * 0.6, size * 0.38, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(size * 0.48, 0);
+    ctx.lineTo(size * 0.95, -size * 0.35);
+    ctx.lineTo(size * 0.95, size * 0.35);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.beginPath();
+    ctx.arc(-size * 0.24, -size * 0.06, size * 0.09, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawAppleSticker(ctx, cx, cy, size) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.fillStyle = '#c53c3c';
+    ctx.beginPath();
+    ctx.arc(-size * 0.28, size * 0.06, size * 0.42, 0, Math.PI * 2);
+    ctx.arc(size * 0.28, size * 0.06, size * 0.42, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#5b3a22';
+    ctx.lineWidth = Math.max(1, size * 0.09);
+    ctx.beginPath();
+    ctx.moveTo(0, -size * 0.32);
+    ctx.lineTo(0, -size * 0.58);
+    ctx.stroke();
+    ctx.fillStyle = '#5fae5f';
+    ctx.beginPath();
+    ctx.ellipse(size * 0.16, -size * 0.5, size * 0.16, size * 0.09, -0.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawBowSticker(ctx, cx, cy, size, color) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(-size, -size * 0.55); ctx.lineTo(-size, size * 0.55);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(size, -size * 0.55); ctx.lineTo(size, size * 0.55);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.beginPath();
+    ctx.arc(0, 0, size * 0.26, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawHatSticker(ctx, cx, cy, size, color) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(0, size * 0.3, size * 0.78, size * 0.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.4, size * 0.16);
+    ctx.quadraticCurveTo(-size * 0.12, -size * 0.56, 0, -size * 0.56);
+    ctx.quadraticCurveTo(size * 0.12, -size * 0.56, size * 0.4, size * 0.16);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawCatFaceSticker(ctx, cx, cy, size) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.55, -size * 0.42);
+    ctx.lineTo(-size * 0.24, -size * 0.88);
+    ctx.lineTo(-size * 0.02, -size * 0.42);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(size * 0.55, -size * 0.42);
+    ctx.lineTo(size * 0.24, -size * 0.88);
+    ctx.lineTo(size * 0.02, -size * 0.42);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(0, 0, size * 0.55, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2b2b2b';
+    ctx.beginPath();
+    ctx.ellipse(-size * 0.18, -size * 0.02, size * 0.05, size * 0.08, 0, 0, Math.PI * 2);
+    ctx.ellipse(size * 0.18, -size * 0.02, size * 0.05, size * 0.08, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(60,60,60,0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.5, size * 0.1); ctx.lineTo(-size * 0.05, size * 0.14);
+    ctx.moveTo(-size * 0.5, size * 0.22); ctx.lineTo(-size * 0.05, size * 0.2);
+    ctx.moveTo(size * 0.5, size * 0.1); ctx.lineTo(size * 0.05, size * 0.14);
+    ctx.moveTo(size * 0.5, size * 0.22); ctx.lineTo(size * 0.05, size * 0.2);
+    ctx.stroke();
+    ctx.fillStyle = '#e79aa8';
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.05, size * 0.1);
+    ctx.lineTo(size * 0.05, size * 0.1);
+    ctx.lineTo(0, size * 0.18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawSmileySticker(ctx, cx, cy, r, color) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.beginPath();
+    ctx.arc(-r * 0.32, -r * 0.1, r * 0.1, 0, Math.PI * 2);
+    ctx.arc(r * 0.32, -r * 0.1, r * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+    ctx.lineWidth = r * 0.12;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(0, -r * 0.05, r * 0.45, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function denimStitchBorder(ctx, pathFn, color) {
+    ctx.save();
+    pathFn();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 7;
+    ctx.stroke();
+    pathFn();
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  // template 1 — light scrapbook paper, denim jean-pocket photo slots
+  function drawDenimPocketCard(canvas, aspect, drawSlot) {
+    const photoW = 176;
+    const photoH = Math.round(photoW * aspect);
+    const pad = 20;
+    const gap = 24;
+    const cardW = photoW + pad * 2;
+    const cardH = pad * 2 + 3 * photoH + 2 * gap;
+    canvas.width = cardW;
+    canvas.height = cardH;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#f3f0e6';
+    ctx.fillRect(0, 0, cardW, cardH);
+    speckleTexture(ctx, 0, 0, cardW, cardH, 140, 'rgba(120,120,140,0.05)', 'rgba(80,80,60,0.04)', 7);
+
+    for (let i = 0; i < 3; i++) {
+      const x = pad;
+      const y = pad + i * (photoH + gap);
+      ctx.save();
+      pocketPath(ctx, x, y, photoW, photoH);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.clip();
+      drawSlot(ctx, x, y, photoW, photoH, i);
+      ctx.restore();
+      denimStitchBorder(ctx, () => pocketPath(ctx, x, y, photoW, photoH), DENIM);
+      // pocket "opening" curve near the top
+      ctx.save();
+      ctx.strokeStyle = DENIM_LIGHT;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + photoW * 0.12, y + photoH * 0.16);
+      ctx.quadraticCurveTo(x + photoW / 2, y + photoH * 0.06, x + photoW * 0.88, y + photoH * 0.16);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    drawFishSticker(ctx, cardW - 20, 18, 13, DENIM);
+    drawStarSticker(ctx, 18, cardH - 18, 10, DENIM_DARK);
+    drawStarSticker(ctx, cardW - 16, cardH / 2, 7, DENIM_LIGHT);
+  }
+
+  // template 2 — dark denim background, heart-shaped photo slots, lace + apples
+  function drawDenimHeartCard(canvas, aspect, drawSlot) {
+    const photoW = 168;
+    const photoH = Math.round(photoW * aspect);
+    const pad = 24;
+    const gap = 30;
+    const footerH = 30;
+    const cardW = photoW + pad * 2;
+    const cardH = pad * 2 + 3 * photoH + 2 * gap + footerH;
+    canvas.width = cardW;
+    canvas.height = cardH;
+    const ctx = canvas.getContext('2d');
+
+    fillDenimTexture(ctx, 0, 0, cardW, cardH, DENIM_DARK, 3);
+
+    for (let i = 0; i < 3; i++) {
+      const cx = cardW / 2;
+      const cy = pad + photoH / 2 + i * (photoH + gap);
+      const hw = photoW * 0.98;
+      const hh = photoH * 1.06;
+
+      laceRing(ctx, (t, place) => {
+        const a = t * Math.PI * 2;
+        const px = cx + Math.cos(a) * (hw / 2 + 4);
+        const py = cy - hh * 0.08 + Math.sin(a) * (hh / 2 + 4);
+        place(px, py);
+      }, 'rgba(255,255,255,0.85)', 3.2);
+
+      ctx.save();
+      heartPath(ctx, cx, cy, hw, hh);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.clip();
+      drawSlot(ctx, cx - photoW / 2, cy - photoH / 2, photoW, photoH, i);
+      ctx.restore();
+
+      ctx.save();
+      heartPath(ctx, cx, cy, hw, hh);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+
+      drawAppleSticker(ctx, cx + hw * 0.42, cy + hh * 0.36, 13);
+    }
+
+    drawBowSticker(ctx, cardW / 2, 14, 11, '#c53c3c');
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.font = "italic 700 15px 'Poppins', sans-serif";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Mi amor', cardW / 2, cardH - footerH / 2);
+    ctx.restore();
+  }
+
+  // template 3 — light denim plaid, rounded photo slots with rivets
+  function drawDenimDiamondCard(canvas, aspect, drawSlot) {
+    const photoW = 176;
+    const photoH = Math.round(photoW * aspect);
+    const pad = 20;
+    const gap = 22;
+    const cardW = photoW + pad * 2;
+    const cardH = pad * 2 + 3 * photoH + 2 * gap;
+    canvas.width = cardW;
+    canvas.height = cardH;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#dfe6ea';
+    ctx.fillRect(0, 0, cardW, cardH);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(90,120,145,0.35)';
+    ctx.lineWidth = 1;
+    for (let d = -cardH; d < cardW + cardH; d += 12) {
+      ctx.beginPath();
+      ctx.moveTo(d, 0);
+      ctx.lineTo(d + cardH, cardH);
+      ctx.moveTo(d, cardH);
+      ctx.lineTo(d + cardH, 0);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    for (let i = 0; i < 3; i++) {
+      const x = pad;
+      const y = pad + i * (photoH + gap);
+      ctx.save();
+      drawRoundRect(ctx, x, y, photoW, photoH, 14);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.clip();
+      drawSlot(ctx, x, y, photoW, photoH, i);
+      ctx.restore();
+
+      ctx.save();
+      drawRoundRect(ctx, x, y, photoW, photoH, 14);
+      ctx.strokeStyle = DENIM;
+      ctx.lineWidth = 8;
+      ctx.stroke();
+      ctx.restore();
+
+      const rivetColor = '#d9b23c';
+      const rInset = 10;
+      [[x + rInset, y + rInset], [x + photoW - rInset, y + rInset],
+        [x + rInset, y + photoH - rInset], [x + photoW - rInset, y + photoH - rInset]].forEach(([rx, ry]) => {
+        ctx.fillStyle = rivetColor;
+        ctx.beginPath();
+        ctx.arc(rx, ry, 3.4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      if (i === 0) drawBowSticker(ctx, x + photoW / 2, y - 4, 12, '#c53c3c');
+      if (i === 1) drawStarSticker(ctx, x - 6, y + photoH / 2, 10, DENIM);
+      if (i === 2) drawSmileySticker(ctx, x + photoW + 4, y + photoH / 2, 11, '#ffd93d');
+    }
+  }
+
+  // template 4 — dark denim, rounded stitched slots, gingham strip footer
+  function drawDenimRoundedCard(canvas, aspect, drawSlot) {
+    const photoW = 176;
+    const photoH = Math.round(photoW * aspect);
+    const pad = 18;
+    const gap = 18;
+    const headerH = 34;
+    const footerH = 26;
+    const cardW = photoW + pad * 2;
+    const cardH = headerH + pad + 3 * photoH + 2 * gap + pad + footerH;
+    canvas.width = cardW;
+    canvas.height = cardH;
+    const ctx = canvas.getContext('2d');
+
+    fillDenimTexture(ctx, 0, 0, cardW, cardH - footerH, DENIM, 11);
+
+    drawHatSticker(ctx, cardW * 0.32, headerH * 0.55, 15, '#c8964f');
+    drawCatFaceSticker(ctx, cardW * 0.68, headerH * 0.55, 15);
+
+    for (let i = 0; i < 3; i++) {
+      const x = pad;
+      const y = headerH + pad / 2 + i * (photoH + gap);
+      ctx.save();
+      drawRoundRect(ctx, x, y, photoW, photoH, 16);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.clip();
+      drawSlot(ctx, x, y, photoW, photoH, i);
+      ctx.restore();
+      denimStitchBorder(ctx, () => drawRoundRect(ctx, x, y, photoW, photoH, 16), DENIM_LIGHT);
+    }
+
+    fillGingham(ctx, 0, cardH - footerH, cardW, footerH, DENIM, 5);
+  }
+
   /* ---------------- compose final result ---------------- */
   const resultCanvas = document.getElementById('resultCanvas');
 
@@ -640,7 +1117,7 @@
     }
     const aspect = imgs[0].height / imgs[0].width;
     const filterCss = state.filter.css === 'none' ? 'none' : state.filter.css;
-    paintCard(resultCanvas, state.theme, state.grid, aspect, (ctx, x, y, w, h, idx) => {
+    renderTemplateCard(resultCanvas, state.theme, state.grid, aspect, (ctx, x, y, w, h, idx) => {
       ctx.filter = filterCss;
       ctx.drawImage(imgs[idx], x, y, w, h);
       ctx.filter = 'none';
